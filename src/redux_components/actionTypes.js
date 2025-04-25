@@ -1,0 +1,15 @@
+export const ADD_PRODUCT = "ADD_PRODUCT";
+export const REMOVE_PRODUCT = "REMOVE_PRODUCT";
+export const UPDATE_PRODUCT = "UPDATE_PRODUCT";
+export const ADD_ORDER = "ADD_ORDER";
+export const REMOVE_ORDER = "REMOVE_ORDER";
+export const UPDATE_ORDER = "UPDATE_ORDER";
+export const REGISTER = "REGISTER";
+// export const LOGIN = "LOGIN";
+export const ADD_CART = "ADD_CART";
+// export const REMOVE = "REMOVE";
+// export const UPDATE = "UPDATE";
+export const ADD_ORDER_TO_CART = "ADD_ORDER_TO_CART";
+// export const REMOVE_ORDER_FROM_CART = "REMOVE_ORDER_FROM_CART";
+// export const CLEAR_CART_ORDERS = "CLEAR_CART_ORDERS";
+// export const UPDATE_CART_ORDER = "UPDATE_CART_ORDER";
