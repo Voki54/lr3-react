@@ -1,19 +1,18 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchOrderLines, deleteOrderLine, updateOrderLine } from '../redux_components/orders/orderLineThunk';
-import { addOrder } from '../redux_components/orders/orderThunk';
+import { useAddOrderMutation } from '../redux_components/orders/orderApi';
 import { useAuth } from '../account/AuthContext';
+import {
+  useFetchOrderLinesQuery,
+  useUpdateOrderLineMutation,
+  useDeleteOrderLineMutation,
+} from '../redux_components/orders/orderLineApi';
 
 function Cart() {
-  const dispatch = useDispatch();
-  const { orderLines, loading, error } = useSelector((state) => state.orderLines);
+  const [addOrder, { isLoading: isAddingOrder  }] = useAddOrderMutation();
   const { authUser } = useAuth();
+  const { data: orderLines = [], isLoading, error, refetch } = useFetchOrderLinesQuery(authUser?.id);
 
-  useEffect(() => {
-    if (authUser?.id) {
-      dispatch(fetchOrderLines(authUser.id));
-    }
-  }, [authUser, dispatch]);
+  const [updateOrderLine, { isLoading: isUpdating }] = useUpdateOrderLineMutation();
+  const [deleteOrderLine, { isLoading: isDeleting }] = useDeleteOrderLineMutation();
 
   const handleAddOrder = async (cartItems) => {
     if (!authUser) {
@@ -28,11 +27,11 @@ function Cart() {
       orderLineIds.push(item.id)
     });
 
-    await dispatch(addOrder({ userId, orderLineIds }));
-    await dispatch(fetchOrderLines(userId));
+    await addOrder({ userId, orderLineIds }).unwrap();
+    await refetch();
   };  
 
-  const handleChangeCount = (orderLine, delta) => {
+  const handleChangeCount = async (orderLine, delta) => {
     const newCount = orderLine.count + delta;
     if (newCount < 1) return;
   
@@ -41,16 +40,16 @@ function Cart() {
       count: newCount,
     };
   
-    dispatch(updateOrderLine(updatedOrder));
+    await updateOrderLine(updatedOrder);
   };
 
   const handleRemove = async (orderLineId) => {
-    await dispatch(deleteOrderLine(orderLineId));
+    await deleteOrderLine(orderLineId);
   };
 
 
 
-  if (loading) return <div>Загружаем корзину...</div>;
+  if (isLoading) return <div>Загружаем корзину...</div>;
   if (error) return <div style={{ color: 'red' }}>Ошибка: {error}</div>;
   
   const cartItems = (orderLines || []);
@@ -80,7 +79,9 @@ function Cart() {
             ))}
           </ul>
           <h3>Итого: {total}₽</h3>
-          <button onClick={() => handleAddOrder(cartItems)} >Оформить заказ</button>
+          <button onClick={() => handleAddOrder(cartItems)} disabled={isAddingOrder}>
+            {isAddingOrder ? 'Оформление...' : 'Оформить заказ'}
+          </button>
         </>
         
       )}

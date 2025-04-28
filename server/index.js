@@ -9,6 +9,9 @@ const corsOptions = {
   allowedHeaders: ['Content-Type'],
 };
 
+app.use(express.json());
+app.use(cors(corsOptions));
+
 const users = [
   { id: 1, username: '1', password: '11'},
   { id: 2, username: '2', password: '22'},
@@ -48,9 +51,6 @@ const orders = [
     items: [ orderLines.find((l) => l.id === 1716762065813) ],
   },
 ];
-
-app.use(express.json());
-app.use(cors(corsOptions));
 
 app.post('/api/register', (req, res) => {
   const { username, password } = req.body;
@@ -160,9 +160,6 @@ app.post('/api/orders/add', (req, res) => {
       items: updatedOrderLines,
     };
 
-    console.log(newOrder);
-
-
     orders.push(newOrder);
 
     res.status(201).json(newOrder);
@@ -189,7 +186,7 @@ app.delete('/api/delete-order-line/:id', (req, res) => {
 
 app.put('/api/order-update/:id', (req, res) => {
   const orderLineId = parseInt(req.params.id);
-  console.log(orderLineId);
+
   const { count, status } = req.body;
 
   const orderIndex = orderLines.findIndex(orderLine => orderLine.id === orderLineId);
@@ -207,13 +204,6 @@ app.put('/api/order-update/:id', (req, res) => {
 
   res.json(orderLines[orderIndex]);
 });
-
-// app.post('/api/orders', (req, res) => {
-//   const order = req.body;
-//   console.log('Новый заказ:', order);
-//   res.status(201).json({ message: 'Заказ успешно оформлен', order });
-// });
-
 
 app.listen(PORT, () => {
   console.log(`Сервер запущен на http://localhost:${PORT}`);

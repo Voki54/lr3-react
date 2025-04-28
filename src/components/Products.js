@@ -1,28 +1,22 @@
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchProducts } from '../redux_components/products/productThunk';
-import { addOrderLine } from '../redux_components/orders/orderLineThunk'; 
+import { useGetProductsQuery } from '../redux_components/products/productsApi';
+import { useAddOrderLineMutation } from '../redux_components/orders/orderLineApi';
 import { useAuth } from '../account/AuthContext';
 
 function Products() {
-  const dispatch = useDispatch();
-  const { items, loading, error } = useSelector((state) => state.products);
+  const { data: items = [], error, isLoading } = useGetProductsQuery();
+  const [addOrderLine, { isLoading: isAddingOrderLine }] = useAddOrderLineMutation();
   const { authUser } = useAuth();
 
-  useEffect(() => {
-    dispatch(fetchProducts());
-  }, [dispatch]);
-
-  const handleAddToCart = (productId) => {
+  const handleAddToCart = async (productId) => {
     if (!authUser) {
       alert('Сначала нужно войти!');
       return;
     }
-    dispatch(addOrderLine({ userId: authUser.id, productId }));
+    await addOrderLine({ userId: authUser.id, productId });
   };
 
-  if (loading) return <div>Загружаем товары...</div>;
-  if (error) return <div style={{ color: 'red' }}>Ошибка: {error}</div>;
+  if (isLoading) return <div>Загружаем товары...</div>;
+  if (error) return <div style={{ color: 'red' }}>Ошибка загрузки товаров</div>;
 
   return (
     <div>
@@ -33,7 +27,9 @@ function Products() {
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <p>Цена: {product.price}₽</p>
-            <button onClick={() => handleAddToCart(product.id)}>Добавить в корзину</button>
+            <button onClick={() => handleAddToCart(product.id)}disabled={isLoading}>
+              {isLoading ? 'Добавление...' : 'Добавить в корзину'}
+            </button>
           </li>
         ))}
       </ul>

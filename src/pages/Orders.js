@@ -1,18 +1,9 @@
-import { useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { fetchOrders } from '../redux_components/orders/orderThunk';
+import { useFetchOrdersQuery } from '../redux_components/orders/orderApi';
 import { useAuth } from '../account/AuthContext';
 
 function Oreders() {
-  const dispatch = useDispatch();
-  const { orders, loading, error } = useSelector((state) => state.orders);
   const { authUser } = useAuth();
-
-  useEffect(() => {
-    if (authUser?.id) {
-      dispatch(fetchOrders(authUser.id));
-    }
-  }, [authUser, dispatch]);
+  const { data: orders = [], isLoading, error } = useFetchOrdersQuery(authUser?.id);
 
   function orderAmount(orderItems) {
     return orderItems.reduce(
@@ -21,12 +12,10 @@ function Oreders() {
   ) || 0;
   }
 
-
-  if (loading) return <div>Загружаем заказы...</div>;
+  if (isLoading) return <div>Загружаем заказы...</div>;
   if (error) return <div style={{ color: 'red' }}>Ошибка: {error}</div>;
   
   const orderItems = (orders || []);
-
 
   return (
     <div>
