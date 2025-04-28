@@ -1,44 +1,38 @@
-import { useState } from "react";
-import { useAuth } from "../account/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser } from '../redux_components/users/userThunk';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../account/AuthContext';
+import AuthForm from '../account/AuthForm';
 
-const Register = () => {
-  const { register } = useAuth();
+function Register() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const { user, loading, error } = useSelector((state) => state.user);
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const handleRegister = (e) => {
-    e.preventDefault();
-    const result = register(username, password);
-    if (result.success) {
-      navigate("/");
-    } else {
-      setError(result.message);
+  useEffect(() => {
+    if (user) {
+      login(user);
+      navigate('/products');
     }
+  }, [user, navigate, login]);
+
+  const handleRegister = (formData) => {
+    dispatch(registerUser(formData));
   };
 
   return (
-    <form onSubmit={handleRegister}>
-      <h2>Регистрация</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <input
-        placeholder="Логин"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Пароль"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-
-      <button type="submit">Зарегистрироваться</button>
-    </form>
+    <AuthForm
+      title="Регистрация"
+      onSubmit={handleRegister}
+      buttonText="Зарегистрироваться"
+      linkText="Есть аккаунт? Войти"
+      linkPath="/login"
+      loading={loading}
+      error={error}
+    />
   );
-};
+}
 
 export default Register;

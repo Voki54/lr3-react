@@ -1,62 +1,31 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { store } from "../redux_components/store";
-import { createUser } from "../redux_components/models/user";
-import { register as registerUser } from "../redux_components/actions";
-import { useNavigate } from "react-router-dom";
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  // const [isAuthLoaded, setIsAuthLoaded] = useState(false);
-  const [state, setState] = useState(store.getState());
-  const navigate = useNavigate();
-  const users = state.user.items;
+  const [authUser, setAuthUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = store.subscribe(() => {
-      setState(store.getState());
-    });
-
-    // setIsAuthLoaded(true);
-    return unsubscribe;
+    const storedUser = localStorage.getItem('authUser');
+    if (storedUser) {
+      setAuthUser(JSON.parse(storedUser));
+    };
+    setIsLoading(false);
   }, []);
 
-  const login = (username, password) => {
-    const found = users.find(
-      (u) => u.username === username && u.password === password
-    );
-    if (found) {
-      setCurrentUser(found);
-      return true;
-    }
-    return false;
+  const login = (userData) => {
+    setAuthUser(userData);
+    localStorage.setItem('authUser', JSON.stringify(userData));
   };
 
   const logout = () => {
-    setCurrentUser(null);
-    navigate("/");
-  };
-
-  const register = (username, password, role = "user") => {
-    if (users.find((u) => u.username === username)) {
-      return { success: false, message: "Пользователь уже существует" };
-    }
-
-    const newUser = createUser({
-      id: Date.now(),
-      username: username, 
-      password: password, 
-      role: role
-    });
-    
-    console.log(newUser);
-    store.dispatch(registerUser(newUser));
-    return { success: true };
+    setAuthUser(null);
+    localStorage.removeItem('authUser');
   };
 
   return (
-    <AuthContext.Provider value={{ user: currentUser, login, logout, register }}>
+    <AuthContext.Provider value={{ authUser, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

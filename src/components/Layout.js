@@ -1,12 +1,15 @@
 import { NavMenu } from "./NavMenu";
+import { Outlet } from "react-router-dom";
 
-export function Layout({ children }) {
+export function Layout() {
     return (
       <>
         <NavMenu />
         <div>
-          {children}
+          <Outlet />
         </div>
       </>
     );
   }
+
+  // export default Layout;

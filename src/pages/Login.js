@@ -1,43 +1,41 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../account/AuthContext";
-import { Link } from "react-router-dom";
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from '../redux_components/users/userThunk';
+import { useAuth } from '../account/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import AuthForm from '../account/AuthForm';
 
-const Login = () => {
-  const { login } = useAuth();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+function Login() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const { user, loading, error } = useSelector((state) => state.user);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const success = login(username, password);
-    if (success) {
-      navigate("/products");
-    } else {
-      alert("Неверные данные");
+  useEffect(() => {
+    if (user) {
+      login(user);
+      navigate('/products');
+    }
+  }, [user, navigate, login]);
+
+  const handleLogin = async (formData) => {
+    const resultAction = await dispatch(loginUser(formData));
+    if (loginUser.fulfilled.match(resultAction)) {
+      login(resultAction.payload);
     }
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <input
-        placeholder="Логин"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Пароль"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button type="submit">Войти</button>
-      <p>
-        Нет аккаунта? <Link to="/register">Зарегистрируйтесь</Link>
-      </p>
-    </form>
+    <AuthForm
+      title="Вход"
+      onSubmit={handleLogin}
+      buttonText="Войти"
+      linkText="Нет аккаунта? Зарегистрируйтесь"
+      linkPath="/register"
+      loading={loading}
+      error={error}
+    />
   );
-};
+}
 
 export default Login;

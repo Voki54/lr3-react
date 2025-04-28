@@ -1,23 +1,21 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../account/AuthContext";
+import LogoutButton from './LogoutButton'
 
 export const NavMenu = () => {
-  const { user, logout } = useAuth();
-  
-  const handleLogout = () => {
-    logout();
-  };
+  const { authUser } = useAuth();
 
   return (
     <header>
         <h2>Канцтовары</h2>
-        {user ? 
+        {authUser ? 
         <>
             <Link to="/">На главную</Link>|
             <Link to="/products">Товары</Link>|
-            <Link to="/cart">Корзина</Link>
-            <button onClick={handleLogout }>Выйти</button>
-            {user.username}
+            <Link to="/cart">Корзина</Link>|
+            <Link to="/orders">Заказы</Link>|
+            <LogoutButton />
+            | Username - {authUser.username}
         </>
         :
             <Link to="/login">Войти</Link>

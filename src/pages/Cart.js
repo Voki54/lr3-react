@@ -1,89 +1,92 @@
-import { useEffect, useState } from "react";
-import { store } from "../redux_components/store";
-import { useAuth } from "../account/AuthContext";
-import {
-//   addOrderToCart,  updateCartOrder,  removeOrderFromCart,  clearCartOrders,
-  updateOrder,
-  removeOrder,
-} from "../redux_components/actions";
+import { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchOrderLines, deleteOrderLine, updateOrderLine } from '../redux_components/orders/orderLineThunk';
+import { addOrder } from '../redux_components/orders/orderThunk';
+import { useAuth } from '../account/AuthContext';
 
+function Cart() {
+  const dispatch = useDispatch();
+  const { orderLines, loading, error } = useSelector((state) => state.orderLines);
+  const { authUser } = useAuth();
 
-export default function Cart() {
-  const [state, setState] = useState(store.getState());
-  const { user } = useAuth();
-  const userId = user?.id;
-
-  const currentCart = state.cart.items.find((cart) => cart.userId === userId);
   useEffect(() => {
-    const unsubscribe = store.subscribe(() => {
-      setState(store.getState());
-    });
-    return unsubscribe;
-  }, []);
+    if (authUser?.id) {
+      dispatch(fetchOrderLines(authUser.id));
+    }
+  }, [authUser, dispatch]);
 
-
-  const handleRemove = (id) => {
-    const orderDto = {
-      cartId: currentCart.id,
-      orderId: id
+  const handleAddOrder = async (cartItems) => {
+    if (!authUser) {
+      alert('Сначала нужно войти!');
+      return;
     }
 
-    store.dispatch(removeOrder(orderDto));
-  };
+    const orderLineIds = [];
+    const userId = authUser.id;
 
-  const handleChangeQuantity = (order, delta) => {
-    const newQuantity = order.quantity + delta;
-    if (newQuantity < 1) return;
+    cartItems.forEach((item) => {
+      orderLineIds.push(item.id)
+    });
+
+    await dispatch(addOrder({ userId, orderLineIds }));
+    await dispatch(fetchOrderLines(userId));
+  };  
+
+  const handleChangeCount = (orderLine, delta) => {
+    const newCount = orderLine.count + delta;
+    if (newCount < 1) return;
   
     const updatedOrder = {
-      ...order,
-      quantity: newQuantity,
+      ...orderLine,
+      count: newCount,
     };
   
-    store.dispatch(updateOrder(updatedOrder));
+    dispatch(updateOrderLine(updatedOrder));
   };
 
-  // const handleClear = (cartOrdersIds) => {
-  //   store.dispatch(clearCartOrders(cartOrdersIds));
-  // };
+  const handleRemove = async (orderLineId) => {
+    await dispatch(deleteOrderLine(orderLineId));
+  };
 
-  const cartOrders = !currentCart || !currentCart.orders || currentCart.orders.length === 0 ? [] :
-    currentCart.orders
-      .map(orderId => state.orders.items.find(order => order.id === orderId))
-      .filter(Boolean); // убираем возможные undefined, если заказ не найден
 
-    const total = cartOrders?.reduce(
-        (sum, order) => sum + order.product.price * order.quantity,
-        0
-    ) || 0;
 
+  if (loading) return <div>Загружаем корзину...</div>;
+  if (error) return <div style={{ color: 'red' }}>Ошибка: {error}</div>;
+  
+  const cartItems = (orderLines || []);
+
+  const total = cartItems.reduce(
+    (sum, orderLine) => sum + orderLine.product.price * orderLine.count,
+    0
+  ) || 0;
 
   return (
     <div>
       <h2>Корзина</h2>
-      {console.log(currentCart.orders)}
-      {console.log(1)}
-      {console.log(cartOrders)}
-      {cartOrders.length === 0 ? (
-        <p>Корзина пуста</p>
+      {cartItems.length === 0 ? (
+        <p>Корзина пуста.</p>
       ) : (
         <>
-            <ul>
-                {cartOrders.map((order) => (
-                <li key={order.id}>
-                    <strong>{order.product.title}</strong> — {order.product.price}₽, {order.quantity} шт. = {order.product.price * order.quantity}₽
-                    <br />
-                    <button onClick={() => handleChangeQuantity(order, 1)}>+</button>
-                    <button onClick={() => handleChangeQuantity(order, -1)} disabled={order.quantity <= 1}>-</button>
-                    <button onClick={() => handleRemove(order.id)}>Удалить из корзины</button>
-                </li>
-                ))}
-            </ul>
-            <h3>Итого: {total}₽</h3>
-            {/* <button onClick={handleClear(currentCart.orders)}>Очистить корзину</button> */}
+          <ul>
+            {cartItems.map((orderLine) => (
+              <li key={orderLine.id}>
+                <p>{orderLine.product.name}</p>
+                <p>Описание товара: {orderLine.product.description}</p>
+                <p>{orderLine.product.price}₽, {orderLine.count} шт. = {orderLine.product.price * orderLine.count}₽</p>
+                <button onClick={() => handleChangeCount(orderLine, 1)}>+</button>
+                <button onClick={() => handleChangeCount(orderLine, -1)} disabled={orderLine.count <= 1}>-</button>
+                <button onClick={() => handleRemove(orderLine.id)}>Удалить из корзины</button>
+              </li>
+            ))}
+          </ul>
+          <h3>Итого: {total}₽</h3>
+          <button onClick={() => handleAddOrder(cartItems)} >Оформить заказ</button>
         </>
+        
       )}
+
     </div>
   );
-};
+}
 
+export default Cart;
