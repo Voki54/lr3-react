@@ -1,15 +1,15 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { orderLineActions } from '../redux_components/entities/orderLines/orderLineEntity';
 import { orderActions } from '../redux_components/entities/orders/orderEntity';
+import styles from './styles/Cart.module.css';
 
 function Cart() {
   const dispatch = useDispatch();
-  
   const authUser = useSelector((state) => state.user.user);
-
-  
   const { data: orderLines = [], loading, error } = useSelector((state) => state.orderLine);
+
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     if (authUser?.id) {
@@ -17,10 +17,14 @@ function Cart() {
     }
   }, [dispatch, authUser]);
 
+  const showNotification = (type, message) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
   const handleChangeCount = (orderLine, delta) => {
     const newCount = orderLine.count + delta;
     if (newCount < 1) return;
-
     dispatch(orderLineActions.updateRequest({ ...orderLine, count: newCount }));
   };
 
@@ -28,7 +32,7 @@ function Cart() {
     dispatch(orderLineActions.deleteRequest(id));
   };
 
-  const handleAddOrder = () => {
+  const handleAddOrder = async () => {
     if (!authUser || orderLines.length === 0) return;
 
     const newOrder = {
@@ -36,38 +40,59 @@ function Cart() {
       orderLineIds: orderLines.map((ol) => ol.id),
     };
 
-    dispatch(orderActions.addRequest(newOrder));
-    // dispatch(orderLineActions.fetchRequest(authUser.id));
+    try {
+      await dispatch(orderActions.addRequest(newOrder));
+      showNotification('success', 'Заказ успешно оформлен!');
+    } catch (err) {
+      showNotification('error', 'Ошибка при оформлении заказа.');
+    }
   };
 
-  if (loading) return <div>Загрузка...</div>;
-  if (error) return <div>Ошибка: {error}</div>;
-
-  const total = orderLines.reduce(
-    (sum, ol) => sum + ol.product.price * ol.count,
-    0
-  );
+  const total = orderLines.reduce((sum, ol) => sum + ol.product.price * ol.count, 0);
 
   return (
-    <div>
-      <h2>Корзина</h2>
-      {orderLines.length === 0 ? (
-        <p>Корзина пуста.</p>
+    <div className={styles.cartContainer} role="main" aria-labelledby="cart-title">
+      <h2 id="cart-title" className={styles.title}>Корзина</h2>
+
+      {notification && (
+        <div
+          className={`${styles.notification} ${
+            notification.type === 'success' ? styles.success : styles.error
+          }`}
+          role="alert"
+          aria-live="polite"
+        >
+          {notification.message}
+        </div>
+      )}
+
+      {loading ? (
+        <p>Загрузка...</p>
+      ) : error ? (
+        <p className={styles.error}>Ошибка: {error}</p>
+      ) : orderLines.length === 0 ? (
+        <p className={styles.empty}>Корзина пуста.</p>
       ) : (
         <>
-          <ul>
+          <ul className={styles.itemList}>
             {orderLines.map((ol) => (
-              <li key={ol.id}>
-                <p>{ol.product.name}</p>
-                <p>{ol.product.price}₽ x {ol.count} шт. = {ol.product.price * ol.count}₽</p>
-                <button onClick={() => handleChangeCount(ol, 1)}>+</button>
-                <button onClick={() => handleChangeCount(ol, -1)} disabled={ol.count <= 1}>-</button>
-                <button onClick={() => handleRemove(ol.id)}>Удалить</button>
+              <li key={ol.id} className={styles.item}>
+                <div className={styles.itemInfo}>
+                  <p className={styles.name}>{ol.product.name}</p>
+                  <p className={styles.price}>
+                    {ol.product.price}₽ × {ol.count} шт. = {ol.product.price * ol.count}₽
+                  </p>
+                </div>
+                <div className={styles.controls}>
+                  <button onClick={() => handleChangeCount(ol, 1)} className={styles.button} aria-label="Увеличить количество">+</button>
+                  <button onClick={() => handleChangeCount(ol, -1)} disabled={ol.count <= 1} className={styles.button} aria-label="Уменьшить количество">–</button>
+                  <button onClick={() => handleRemove(ol.id)} className={styles.removeButton} aria-label="Удалить товар из корзины">Удалить</button>
+                </div>
               </li>
             ))}
           </ul>
-          <h3>Итого: {total}₽</h3>
-          <button onClick={handleAddOrder}>Оформить заказ</button>
+          <h3 className={styles.total}>Итого: {total}₽</h3>
+          <button onClick={handleAddOrder} className={styles.submitButton}>Оформить заказ</button>
         </>
       )}
     </div>

@@ -1,0 +1,150 @@
+.cartContainer {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: sans-serif;
+    box-sizing: border-box;
+  }
+  
+  .title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #222;
+  }
+  
+  .empty {
+    font-size: 1.1rem;
+    color: #555;
+    text-align: center;
+  }
+  
+  .itemList {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .item {
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  @media (min-width: 600px) {
+    .item {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+  
+  .itemInfo {
+    flex: 1;
+  }
+  
+  .name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 0.25rem;
+  }
+  
+  .price {
+    color: #666;
+    font-size: 0.95rem;
+  }
+  
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .button,
+  .removeButton,
+  .submitButton {
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .button {
+    background-color: #005fcc;
+    color: #fff;
+  }
+  
+  .button:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+  }
+  
+  .removeButton {
+    background-color: #e63946;
+    color: #fff;
+  }
+  
+  .removeButton:hover {
+    background-color: #c5303c;
+  }
+  
+  .submitButton {
+    background-color: #2a9d8f;
+    color: white;
+    display: block;
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .submitButton:hover {
+    background-color: #21867a;
+  }
+  
+  .button:focus,
+  .removeButton:focus,
+  .submitButton:focus {
+    outline: 3px solid #ffcc00;
+    outline-offset: 2px;
+  }
+  
+  .total {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #222;
+    text-align: right;
+  }
+  
+  .notification {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .success {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+  }
+  
+  .error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+  }
+  
