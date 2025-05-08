@@ -5,7 +5,7 @@ export function createAuthEntity({ name, loginFn, registerFn }) {
   const slice = createSlice({
     name,
     initialState: {
-      user: null,
+      user: JSON.parse(localStorage.getItem('authUser') || 'null'),
       loading: false,
       error: null,
     },
@@ -15,6 +15,7 @@ export function createAuthEntity({ name, loginFn, registerFn }) {
         state.error = null;
       },
       loginSuccess: (state, action) => {
+        localStorage.setItem('authUser', JSON.stringify(action.payload));
         state.loading = false;
         state.user = action.payload;
       },
@@ -27,12 +28,19 @@ export function createAuthEntity({ name, loginFn, registerFn }) {
         state.error = null;
       },
       registerSuccess: (state, action) => {
+        localStorage.setItem('authUser', JSON.stringify(action.payload));
         state.loading = false;
         state.user = action.payload;
       },
       registerFailure: (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      },
+      logoutRequest: (state) => {
+        state.loading = false;
+        state.user = null;
+        state.error = null;
+        localStorage.removeItem('authUser');
       },
     },
   });
@@ -54,6 +62,7 @@ export function createAuthEntity({ name, loginFn, registerFn }) {
       yield put(slice.actions.registerFailure(e.message));
     }
   }
+
 
   function* authSaga() {
     yield takeLatest(slice.actions.loginRequest.type, loginSaga);

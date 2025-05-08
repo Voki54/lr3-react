@@ -1,14 +1,15 @@
-import { useAuth } from "./AuthContext";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
-const PrivateRoute = () => {  
-    const { authUser, isLoading } = useAuth();
+const PrivateRoute = () => {
+  const user = useSelector((state) => state.user.user);
+  const loading = useSelector((state) => state.user.loading);
 
-    if (isLoading) {
-      return <div>Загрузка...</div>;
-    }
-  
-    return authUser ? <Outlet/> : <Navigate to="/" />;
-  };
-  
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
+
+  return user ? <Outlet /> : <Navigate to="/" />;
+};
+
 export default PrivateRoute;

@@ -1,30 +1,38 @@
-import { useFetchOrdersQuery } from '../redux_components/entities/orders/orderApi';
-import { useAuth } from '../account/AuthContext';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { orderActions } from '../redux_components/entities/orders/orderEntity';
 
-function Oreders() {
-  const { authUser } = useAuth();
-  const { data: orders = [], isLoading, error } = useFetchOrdersQuery(authUser?.id);
+function Orders() {
+  const dispatch = useDispatch();
 
+  const authUser = useSelector((state) => state.user.user);
+  const { data: orders = [], loading, error } = useSelector((state) => state.orders);
+
+  useEffect(() => {
+    if (authUser?.id) {
+      dispatch(orderActions.fetchRequest(authUser.id)); // Загружаем заказы для текущего пользователя
+    }
+  }, [dispatch, authUser?.id]);
+
+  // Рассчитываем сумму заказа
   function orderAmount(orderItems) {
     return orderItems.reduce(
-    (sum, item) => sum + item.product.price * item.count,
-    0
-  ) || 0;
+      (sum, item) => sum + item.product.price * item.count,
+      0
+    ) || 0;
   }
 
-  if (isLoading) return <div>Загружаем заказы...</div>;
+  if (loading) return <div>Загружаем заказы...</div>;
   if (error) return <div style={{ color: 'red' }}>Ошибка: {error}</div>;
-  
-  const orderItems = (orders || []);
 
   return (
     <div>
       <h2>Заказы</h2>
-      {orderItems.length === 0 ? (
+      {orders.length === 0 ? (
         <p>Заказов нет.</p>
       ) : (
         <ul>
-          {orderItems.map((order) => (
+          {orders.map((order) => (
             <li key={order.id}>
               <p>Дата заказа: {order.orderDate}</p>
               <p>Дата доставки: {order.deliveryDate}</p>
@@ -45,4 +53,4 @@ function Oreders() {
   );
 }
 
-export default Oreders;
+export default Orders;

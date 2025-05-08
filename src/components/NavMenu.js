@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "../account/AuthContext";
-import LogoutButton from './LogoutButton'
+import LogoutButton from './LogoutButton';
+import { useSelector } from 'react-redux';
 
 export const NavMenu = () => {
-  const { authUser } = useAuth();
-
+    const authUser = useSelector((state) => state.user.user);
   return (
     <header>
         <h2>Канцтовары</h2>

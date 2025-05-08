@@ -1,25 +1,24 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { productActions } from '../redux_components/entities/products/productSlice';
-import { useAddOrderLineMutation } from '../redux_components/entities/orderLines/orderLineEntity';
-import { useAuth } from '../account/AuthContext';
+import { orderLineActions } from '../redux_components/entities/orderLines/orderLineEntity';
 
 function Products() {
   const dispatch = useDispatch();
   const { data: items, loading, error } = useSelector((state) => state.products);
-  const [addOrderLine, { isLoading: isAddingOrderLine }] = useAddOrderLineMutation();
-  const { authUser } = useAuth();
+  const authUser = useSelector((state) => state.user.user);
 
   useEffect(() => {
     dispatch(productActions.fetchRequest());
   }, [dispatch]);
 
-  const handleAddToCart = async (productId) => {
+  const handleAddToCart = (productId) => {
     if (!authUser) {
       alert('Сначала нужно войти!');
       return;
     }
-    await addOrderLine({ userId: authUser.id, productId });
+
+    dispatch(orderLineActions.addRequest({ userId: authUser.id, productId }));
   };
 
   if (loading) return <div>Загружаем товары...</div>;
@@ -34,8 +33,8 @@ function Products() {
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <p>Цена: {product.price}₽</p>
-            <button onClick={() => handleAddToCart(product.id)} disabled={isAddingOrderLine}>
-              {isAddingOrderLine ? 'Добавление...' : 'Добавить в корзину'}
+            <button onClick={() => handleAddToCart(product.id)}>
+              Добавить в корзину
             </button>
           </li>
         ))}

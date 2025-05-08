@@ -1,12 +1,13 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from '../account/AuthContext';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { userActions } from '../redux_components/entities/users/userSlice';
 
 function LogoutButton() {
-  const { logout } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();               
+    dispatch(userActions.logoutRequest());
     navigate('/login');
   };
 

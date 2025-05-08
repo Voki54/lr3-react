@@ -1,24 +1,21 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { orderLineActions, orderLineSelectors } from '../redux_components/entities/orderLines/orderLineEntity';
-import { useAddOrderMutation } from '../redux_components/entities/orders/orderApi';
-import { useAuth } from '../account/AuthContext';
+import { orderLineActions } from '../redux_components/entities/orderLines/orderLineEntity';
+import { orderActions } from '../redux_components/entities/orders/orderEntity';
 
 function Cart() {
   const dispatch = useDispatch();
-  const { authUser } = useAuth();
+  
+  const authUser = useSelector((state) => state.user.user);
 
-  const orderLines = useSelector(orderLineSelectors.selectAll);
-  const loading = useSelector(orderLineSelectors.selectLoading);
-  const error = useSelector(orderLineSelectors.selectError);
-
-  const [addOrder] = useAddOrderMutation();
+  
+  const { data: orderLines = [], loading, error } = useSelector((state) => state.orderLine);
 
   useEffect(() => {
-    if (authUser) {
+    if (authUser?.id) {
       dispatch(orderLineActions.fetchRequest(authUser.id));
     }
-  }, [authUser]);
+  }, [dispatch, authUser]);
 
   const handleChangeCount = (orderLine, delta) => {
     const newCount = orderLine.count + delta;
@@ -31,10 +28,16 @@ function Cart() {
     dispatch(orderLineActions.deleteRequest(id));
   };
 
-  const handleAddOrder = async () => {
-    const orderLineIds = orderLines.map((ol) => ol.id);
-    await addOrder({ userId: authUser.id, orderLineIds });
-    dispatch(orderLineActions.fetchRequest(authUser.id)); // обновим корзину
+  const handleAddOrder = () => {
+    if (!authUser || orderLines.length === 0) return;
+
+    const newOrder = {
+      userId: authUser.id,
+      orderLineIds: orderLines.map((ol) => ol.id),
+    };
+
+    dispatch(orderActions.addRequest(newOrder));
+    // dispatch(orderLineActions.fetchRequest(authUser.id));
   };
 
   if (loading) return <div>Загрузка...</div>;
@@ -56,7 +59,7 @@ function Cart() {
             {orderLines.map((ol) => (
               <li key={ol.id}>
                 <p>{ol.product.name}</p>
-                <p>{ol.product.price}₽ x {ol.count}</p>
+                <p>{ol.product.price}₽ x {ol.count} шт. = {ol.product.price * ol.count}₽</p>
                 <button onClick={() => handleChangeCount(ol, 1)}>+</button>
                 <button onClick={() => handleChangeCount(ol, -1)} disabled={ol.count <= 1}>-</button>
                 <button onClick={() => handleRemove(ol.id)}>Удалить</button>
