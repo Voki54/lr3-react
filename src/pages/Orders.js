@@ -1,4 +1,4 @@
-import { useFetchOrdersQuery } from '../redux_components/orders/orderApi';
+import { useFetchOrdersQuery } from '../redux_components/entities/orders/orderApi';
 import { useAuth } from '../account/AuthContext';
 
 function Oreders() {

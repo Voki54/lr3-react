@@ -1,21 +1,25 @@
-import { useLoginMutation } from '../redux_components/users/userApi';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../account/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AuthForm from '../account/AuthForm';
+import { userActions } from '../redux_components/entities/users/userSlice';
+import { useEffect } from 'react';
 
 function Login() {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [loginRequest, { isLoading, error }] = useLoginMutation();
+  const { user, loading, error } = useSelector((state) => state.user);
 
-  const handleLogin = async (formData) => {
-    try {
-      const user = await loginRequest(formData).unwrap();
+  useEffect(() => {
+    if (user) {
       login(user);
       navigate('/products');
-    } catch (err) {
-      console.error('Ошибка входа:', err);
     }
+  }, [user, login, navigate]);
+
+  const handleLogin = (formData) => {
+    dispatch(userActions.loginRequest(formData));
   };
 
   return (
@@ -25,7 +29,7 @@ function Login() {
       buttonText="Войти"
       linkText="Нет аккаунта? Зарегистрируйтесь"
       linkPath="/register"
-      loading={isLoading}
+      loading={loading}
       error={error}
     />
   );

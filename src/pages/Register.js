@@ -1,21 +1,26 @@
-import { useRegisterMutation } from '../redux_components/users/userApi';
+// Register.js
+import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '../account/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AuthForm from '../account/AuthForm';
+import { userActions } from '../redux_components/entities/users/userSlice';
+import { useEffect } from 'react';
 
 function Register() {
-  const [register, { isLoading, error }] = useRegisterMutation();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { user, loading, error } = useSelector((state) => state.user);
 
-  const handleRegister = async (formData) => {
-    try {
-      const user = await register(formData).unwrap(); // unwrap автоматически выбрасывает ошибку если что-то не так
+  useEffect(() => {
+    if (user) {
       login(user);
       navigate('/products');
-    } catch (err) {
-      console.error('Ошибка регистрации:', err);
     }
+  }, [user, login, navigate]);
+
+  const handleRegister = (formData) => {
+    dispatch(userActions.registerRequest(formData));
   };
 
   return (
@@ -25,8 +30,8 @@ function Register() {
       buttonText="Зарегистрироваться"
       linkText="Есть аккаунт? Войти"
       linkPath="/login"
-      loading={isLoading}
-      error={error?.data?.message || error?.error}
+      loading={loading}
+      error={error}
     />
   );
 }

@@ -1,19 +1,22 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { userApi } from './users/userApi'
-import { orderLineApi } from './orders/orderLineApi';
-import { productsApi } from './products/productsApi'
-import { orderApi } from './orders/orderApi';
+import createSagaMiddleware from 'redux-saga';
+import { userReducer } from './entities/users/userSlice';
+import { productReducer } from './entities/products/productSlice';
+import { orderLineReducer } from './entities/orderLines/orderLineEntity';
+import rootSaga from './rootSaga';
+
+const sagaMiddleware = createSagaMiddleware();
 
 const store = configureStore({
   reducer: {
-    [userApi.reducerPath]: userApi.reducer,
-    [productsApi.reducerPath]: productsApi.reducer,
-    [orderApi.reducerPath]: orderApi.reducer,
-    [orderLineApi.reducerPath]: orderLineApi.reducer,
+    user: userReducer,
+    products: productReducer,
+    orderLine: orderLineReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware()
-      .concat(userApi.middleware, productsApi.middleware, orderApi.middleware, orderLineApi.middleware),
+    getDefaultMiddleware({ thunk: false }).concat(sagaMiddleware),
 });
+
+sagaMiddleware.run(rootSaga);
 
 export default store;

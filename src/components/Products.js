@@ -1,11 +1,18 @@
-import { useGetProductsQuery } from '../redux_components/products/productsApi';
-import { useAddOrderLineMutation } from '../redux_components/orders/orderLineApi';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { productActions } from '../redux_components/entities/products/productSlice';
+import { useAddOrderLineMutation } from '../redux_components/entities/orderLines/orderLineEntity';
 import { useAuth } from '../account/AuthContext';
 
 function Products() {
-  const { data: items = [], error, isLoading } = useGetProductsQuery();
+  const dispatch = useDispatch();
+  const { data: items, loading, error } = useSelector((state) => state.products);
   const [addOrderLine, { isLoading: isAddingOrderLine }] = useAddOrderLineMutation();
   const { authUser } = useAuth();
+
+  useEffect(() => {
+    dispatch(productActions.fetchRequest());
+  }, [dispatch]);
 
   const handleAddToCart = async (productId) => {
     if (!authUser) {
@@ -15,8 +22,8 @@ function Products() {
     await addOrderLine({ userId: authUser.id, productId });
   };
 
-  if (isLoading) return <div>Загружаем товары...</div>;
-  if (error) return <div style={{ color: 'red' }}>Ошибка загрузки товаров</div>;
+  if (loading) return <div>Загружаем товары...</div>;
+  if (error) return <div style={{ color: 'red' }}>Ошибка: {error}</div>;
 
   return (
     <div>
@@ -27,8 +34,8 @@ function Products() {
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <p>Цена: {product.price}₽</p>
-            <button onClick={() => handleAddToCart(product.id)}disabled={isLoading}>
-              {isLoading ? 'Добавление...' : 'Добавить в корзину'}
+            <button onClick={() => handleAddToCart(product.id)} disabled={isAddingOrderLine}>
+              {isAddingOrderLine ? 'Добавление...' : 'Добавить в корзину'}
             </button>
           </li>
         ))}
